@@ -1,0 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #eeeeee;
+    margin: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+#resultado {
+    background-color: white;
+    padding: 15px;
+    margin: 20px auto;
+    max-width: 900px;
+    border-radius: 10px;
+}
+
+#contenedor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.card {
+    background-color: white;
+    width: 450px;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 5px gray;
+}
+
+.card h2 {
+    color: #333333;
+}
+
+.pearson {
+    font-size: 20px;
+    font-weight: bold;
+    color: blue;
+}
+
+canvas {
+    border: 1px solid #cccccc;
+    width: 100%;
+}

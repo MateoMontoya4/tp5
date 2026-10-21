@@ -1,404 +1,276 @@
-// URL de la API
 
+ // URL de la API de donde obtenemos los datos
 const url = "https://apidemo.geoeducacion.com.ar/api/testing/pearson/1";
 
-
-// --------------------------------------
-// FUNCIÓN PARA CALCULAR PEARSON
-// --------------------------------------
-
+// Funcion para calcular el coeficiente de Pearson
+// Recibe dos listas de valores: x e y
 function calcularPearson(x, y) {
-
     let n = x.length;
 
+    // Variables para guardar las sumas necesarias
     let sumaX = 0;
     let sumaY = 0;
     let sumaXY = 0;
     let sumaX2 = 0;
     let sumaY2 = 0;
 
-
+    // Recorrer los valores y calcular las sumas
     for (let i = 0; i < n; i++) {
-
-        sumaX = sumaX + x[i];
-
-        sumaY = sumaY + y[i];
-
-        sumaXY = sumaXY + x[i] * y[i];
-
-        sumaX2 = sumaX2 + x[i] * x[i];
-
-        sumaY2 = sumaY2 + y[i] * y[i];
+        sumaX += x[i];
+        sumaY += y[i];
+        sumaXY += x[i] * y[i];
+        sumaX2 += x[i] * x[i];
+        sumaY2 += y[i] * y[i];
     }
 
-
-    let numerador =
-        n * sumaXY - sumaX * sumaY;
-
+    // Aplicar la formula de Pearson
+    let numerador = n * sumaXY - sumaX * sumaY;
 
     let denominador = Math.sqrt(
         (n * sumaX2 - sumaX * sumaX) *
         (n * sumaY2 - sumaY * sumaY)
     );
 
+    // Evitar dividir por cero si no hay variacion en los datos
+    if (denominador == 0) {
+        return 0;
+    }
 
+    // Devolver el resultado
     return numerador / denominador;
 }
 
-
-// --------------------------------------
-// FUNCIÓN PARA EXPLICAR EL PEARSON
-// --------------------------------------
-
+// Funcion que explica el resultado de Pearson
 function explicarPearson(valor) {
 
-    let valorAbsoluto = Math.abs(valor);
-
-
-    if (valorAbsoluto >= 0.8) {
-
-        if (valor > 0) {
-
-            return "Existe una correlación positiva fuerte. Las dos variables tienden a aumentar juntas.";
-
-        } else {
-
-            return "Existe una correlación negativa fuerte. Cuando una variable aumenta, la otra tiende a disminuir.";
-        }
-
-
-    } else if (valorAbsoluto >= 0.5) {
-
-        if (valor > 0) {
-
-            return "Existe una correlación positiva moderada.";
-
-        } else {
-
-            return "Existe una correlación negativa moderada.";
-        }
-
-
-    } else {
-
-        return "Existe una correlación lineal débil o prácticamente inexistente.";
+    // Si el valor es cercano a 1, la correlacion es positiva fuerte
+    if (valor >= 0.8) {
+        return "Correlacion positiva fuerte.";
     }
+
+    // Si el valor es cercano a -1, la correlacion es negativa fuerte
+    if (valor <= -0.8) {
+        return "Correlacion negativa fuerte.";
+    }
+
+    // Correlacion positiva moderada
+    if (valor >= 0.5) {
+        return "Correlacion positiva moderada.";
+    }
+
+    // Correlacion negativa moderada
+    if (valor <= -0.5) {
+        return "Correlacion negativa moderada.";
+    }
+
+    // Si no cumple las condiciones anteriores, es debil
+    return "Correlacion debil.";
 }
 
-
-// --------------------------------------
-// FUNCIÓN PARA HACER EL GRÁFICO
-// --------------------------------------
-
+// Funcion para dibujar el grafico de dispersion
 function hacerGrafico(canvas, x, y) {
 
+    // Obtener el contexto para dibujar
     let ctx = canvas.getContext("2d");
 
-
-    let ancho = canvas.width;
-
-    let alto = canvas.height;
-
-
+    // Buscar los valores minimos y maximos
     let minX = Math.min(...x);
-
     let maxX = Math.max(...x);
-
     let minY = Math.min(...y);
-
     let maxY = Math.max(...y);
 
+    // Dibujar los ejes del grafico
+    ctx.beginPath();
+    ctx.moveTo(30, 10);
+    ctx.lineTo(30, 180);
+    ctx.lineTo(390, 180);
+    ctx.stroke();
 
-    // Dibujamos cada punto
+    // Dibujar la linea de tendencia
+    if (maxX != minX) {
 
+        let n = x.length;
+        let sumaX = 0;
+        let sumaY = 0;
+        let sumaXY = 0;
+        let sumaX2 = 0;
+
+        // Calcular las sumas necesarias para la linea
+        for (let i = 0; i < n; i++) {
+            sumaX += x[i];
+            sumaY += y[i];
+            sumaXY += x[i] * y[i];
+            sumaX2 += x[i] * x[i];
+        }
+
+        // Calcular la pendiente de la linea
+        let numerador = n * sumaXY - sumaX * sumaY;
+        let denominador = n * sumaX2 - sumaX * sumaX;
+        let pendiente = numerador / denominador;
+
+        // Calcular donde empieza y termina la linea
+        let promedioX = sumaX / n;
+        let promedioY = sumaY / n;
+        let inicioY = promedioY + pendiente * (minX - promedioX);
+        let finalY = promedioY + pendiente * (maxX - promedioX);
+
+        // Pasar los valores a posiciones del grafico
+        let px1 = 30;
+        let px2 = 390;
+        let py1 = 180;
+        let py2 = 180;
+
+        if (maxY != minY) {
+            py1 = 180 - (inicioY - minY) / (maxY - minY) * 160;
+            py2 = 180 - (finalY - minY) / (maxY - minY) * 160;
+        }
+
+        // Dibujar la linea roja
+        ctx.beginPath();
+        ctx.moveTo(px1, py1);
+        ctx.lineTo(px2, py2);
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // Recorrer los datos para dibujar cada punto
     for (let i = 0; i < x.length; i++) {
 
-        let posicionX =
-            ((x[i] - minX) / (maxX - minX))
-            * (ancho - 40) + 20;
+        // Calcular la posicion horizontal
+        let px = 30;
+        let py = 180;
 
+        if (maxX != minX) {
+            px = 30 + (x[i] - minX) / (maxX - minX) * 360;
+        }
 
-        let posicionY =
-            alto -
-            (((y[i] - minY) / (maxY - minY))
-            * (alto - 40) + 20);
+        // Calcular la posicion vertical
+        if (maxY != minY) {
+            py = 180 - (y[i] - minY) / (maxY - minY) * 160;
+        }
 
-
+        // Dibujar el circulito azul
         ctx.beginPath();
-
-        ctx.arc(
-            posicionX,
-            posicionY,
-            5,
-            0,
-            2 * Math.PI
-        );
-
+        ctx.arc(px, py, 4, 0, 2 * Math.PI);
         ctx.fillStyle = "blue";
-
         ctx.fill();
     }
 }
 
-
-// --------------------------------------
-// FUNCIÓN PRINCIPAL
-// --------------------------------------
-
+// Funcion principal para obtener y mostrar los datos
 async function obtenerDatos() {
-
     try {
 
-        // Pedimos los datos a la API
-
+        // Pedir los datos a la API
         let respuesta = await fetch(url);
 
-
-        // Convertimos la respuesta a JSON
-
+        // Convertir la respuesta a formato JSON
         let datos = await respuesta.json();
 
-
-        // Obtenemos los valores
-
+        // Obtener la lista de datos meteorologicos
         let valores = datos.data[0].valores;
 
-
-        // --------------------------------------
-        // COMBINACIONES
-        // --------------------------------------
-
+        // Guardar las seis combinaciones que tenemos que analizar
         let combinaciones = [
-
-            {
-                nombre: "Presión y Temperatura",
-                x: "presion",
-                y: "temperatura"
-            },
-
-            {
-                nombre: "Presión y Humedad",
-                x: "presion",
-                y: "humedad"
-            },
-
-            {
-                nombre: "Presión y Velocidad del viento",
-                x: "presion",
-                y: "viento"
-            },
-
-            {
-                nombre: "Temperatura y Humedad",
-                x: "temperatura",
-                y: "humedad"
-            },
-
-            {
-                nombre: "Temperatura y Velocidad del viento",
-                x: "temperatura",
-                y: "viento"
-            },
-
-            {
-                nombre: "Humedad y Velocidad del viento",
-                x: "humedad",
-                y: "viento"
-            }
-
+            { nombre: "Presion y Temperatura", x: "presion", y: "temperatura" },
+            { nombre: "Presion y Humedad", x: "presion", y: "humedad" },
+            { nombre: "Presion y Viento", x: "presion", y: "viento" },
+            { nombre: "Temperatura y Humedad", x: "temperatura", y: "humedad" },
+            { nombre: "Temperatura y Viento", x: "temperatura", y: "viento" },
+            { nombre: "Humedad y Viento", x: "humedad", y: "viento" }
         ];
 
+        // Buscar el contenedor donde se mostraran las tarjetas
+        let contenedor = document.getElementById("contenedor");
 
-        let contenedor =
-            document.getElementById("contenedor");
-
-
+        // Lista para guardar los resultados de Pearson
         let resultados = [];
 
-
-        // --------------------------------------
-        // RECORREMOS LAS COMBINACIONES
-        // --------------------------------------
-
+        // Recorrer las seis combinaciones
         for (let combinacion of combinaciones) {
 
+            // Crear las listas para las dos variables
+            let x = [];
+            let y = [];
 
-            let valoresX = [];
-
-            let valoresY = [];
-
-
-            // Sacamos los valores de cada variable
-
+            // Obtener los valores de cada variable
             for (let dato of valores) {
-
-                valoresX.push(
-                    dato[combinacion.x]
-                );
-
-                valoresY.push(
-                    dato[combinacion.y]
-                );
+                x.push(dato[combinacion.x]);
+                y.push(dato[combinacion.y]);
             }
 
+            // Calcular Pearson para esta combinacion
+            let pearson = calcularPearson(x, y);
 
-            // Calculamos Pearson
-
-            let pearson =
-                calcularPearson(
-                    valoresX,
-                    valoresY
-                );
-
-
-            // Guardamos el resultado
-
+            // Guardar el nombre y el resultado
             resultados.push({
-
                 nombre: combinacion.nombre,
-
                 pearson: pearson
-
             });
 
+            // Crear la tarjeta
+            let tarjeta = document.createElement("div");
+            tarjeta.className = "card";
 
-            // --------------------------------------
-            // CREAMOS LA CARD
-            // --------------------------------------
+            // Crear el titulo de la tarjeta
+            let titulo = document.createElement("h2");
+            titulo.textContent = combinacion.nombre;
 
-            let card =
-                document.createElement("div");
-
-
-            card.className = "card";
-
-
-            // Título
-
-            let titulo =
-                document.createElement("h2");
-
-
-            titulo.textContent =
-                combinacion.nombre;
-
-
-            // Pearson
-
-            let resultado =
-                document.createElement("p");
-
-
+            // Mostrar el coeficiente con tres decimales
+            let resultado = document.createElement("p");
             resultado.className = "pearson";
+            resultado.textContent = "Pearson: " + pearson.toFixed(3);
 
-
-            resultado.textContent =
-                "Coeficiente de Pearson: "
-                + pearson.toFixed(3);
-
-
-            // Explicación
-
-            let explicacion =
-                document.createElement("p");
-
-
-            explicacion.textContent =
-                explicarPearson(pearson);
-
-
-            // --------------------------------------
-            // CREAMOS EL CANVAS
-            // --------------------------------------
-
-            let canvas =
-                document.createElement("canvas");
-
-
+            // Crear el espacio para el grafico
+            let canvas = document.createElement("canvas");
             canvas.width = 400;
+            canvas.height = 200;
 
-            canvas.height = 250;
+            // Mostrar la explicacion de la correlacion
+            let explicacion = document.createElement("p");
+            explicacion.textContent = explicarPearson(pearson);
 
+            // Agregar los elementos a la tarjeta
+            tarjeta.appendChild(titulo);
+            tarjeta.appendChild(resultado);
+            tarjeta.appendChild(canvas);
+            tarjeta.appendChild(explicacion);
 
-            // Agregamos los elementos a la card
+            // Agregar la tarjeta a la pagina
+            contenedor.appendChild(tarjeta);
 
-            card.appendChild(titulo);
-
-            card.appendChild(resultado);
-
-            card.appendChild(canvas);
-
-            card.appendChild(explicacion);
-
-
-            // Agregamos la card a la página
-
-            contenedor.appendChild(card);
-
-
-            // Hacemos el gráfico
-
-            hacerGrafico(
-                canvas,
-                valoresX,
-                valoresY
-            );
-
+            // Dibujar el grafico con los valores de esta combinacion
+            hacerGrafico(canvas, x, y);
         }
 
-
-        // --------------------------------------
-        // BUSCAMOS LA MAYOR CORRELACIÓN
-        // --------------------------------------
-
+        // Tomar el primer resultado como la correlacion mas fuerte
         let mayor = resultados[0];
 
-
+        // Comparar los seis resultados
         for (let resultado of resultados) {
 
-            if (
-                Math.abs(resultado.pearson) >
-                Math.abs(mayor.pearson)
-            ) {
-
+            // Comparar la intensidad sin importar si es positiva o negativa
+            if (Math.abs(resultado.pearson) > Math.abs(mayor.pearson)) {
                 mayor = resultado;
-
             }
         }
 
-
-        // --------------------------------------
-        // MOSTRAMOS EL RESULTADO
-        // --------------------------------------
-
-        document.getElementById(
-            "mayorCorrelacion"
-        ).textContent =
-
-            "La mayor correlación es entre "
-            + mayor.nombre
-            + ", con un coeficiente de Pearson de "
-            + mayor.pearson.toFixed(3)
-            + ". "
-            + explicarPearson(mayor.pearson);
-
+        // Mostrar cual es la correlacion mas fuerte
+        document.getElementById("mayorCorrelacion").textContent =
+            "La correlacion mas fuerte es entre " + mayor.nombre +
+            ", con un coeficiente de " + mayor.pearson.toFixed(3) +
+            ". " + explicarPearson(mayor.pearson);
 
     } catch (error) {
 
+        // Mostrar un mensaje si ocurre un error
         console.log(error);
 
-
-        document.getElementById(
-            "mayorCorrelacion"
-        ).textContent =
-            "Ocurrió un error al obtener los datos.";
-
+        document.getElementById("mayorCorrelacion").textContent =
+            "Error al obtener los datos de la API.";
     }
 }
 
-
-// --------------------------------------
-// EJECUTAMOS EL PROGRAMA
-// --------------------------------------
-
+// Ejecutar la funcion principal
 obtenerDatos();
